@@ -6,10 +6,11 @@ public class CourseSystem{
     private static String id;
     private static String pass;
     private static ArrayList<String> identities;
+    private static Scanner scanner=new Scanner(System.in);
+    private static String input=null;
 
     public static void main(String[] args){
-        Scanner scanner=new Scanner(System.in);
-        String input=null;
+        
 
         //initialize identities-list;
         identities=new ArrayList<String>();
@@ -46,7 +47,7 @@ public class CourseSystem{
                         //if the user is a student
                         case "s":
                             Student stu=new Student(id,pass);
-                            us.useDatabase();
+                            stu.useDatabase();
                             break;
                     }
 

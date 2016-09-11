@@ -3,23 +3,24 @@ import java.sql.*;
 import java.util.*;
 
 public class Student extends User{
-    static final String MENU="What do you want to do next?\n"
+    private static final String MENU="What do you want to do next?\n"
         +"(a) get a list of added courses\n"
         +"(b) course inquiry\n"
         +"(c) add a course\n"
         +"(d) drop a course\n"
         +"(e) exit\n";
-    static final String pro_stu_added="call pro_stu_added(?)";
-    static final String pro_stu_courses="call pro_stu_courses(?,?,?,?,?,?,?)";
-    static final String pro_stu_add_course="call pro_stu_add_course(?,?)";
 
-    static boolean done=false;
-    static Connection con=null;
-    static Statement stmt=null;
-    static CallableStatement cstmt=null;
-    static ResultSet rs=null;
-    static Scanner scanner=new Scanner(System.in);
-    static String input=null;
+    private static final String pro_stu_added="call pro_stu_added(?)";
+    private static final String pro_stu_courses="call pro_stu_courses(?,?,?,?,?,?,?)";
+    private static final String pro_stu_add_course="call pro_stu_add_course(?,?)";
+
+    private static boolean done=false;
+    private static Connection con=null;
+    private static Statement stmt=null;
+    private static CallableStatement cstmt=null;
+    private static ResultSet rs=null;
+    private static Scanner scanner=new Scanner(System.in);
+    private static String input=null;
 
 
 
@@ -51,7 +52,7 @@ public class Student extends User{
                         try {
                             queryForAdded();
                         }
-                        catch (Exception qe){
+                        catch (Exception e){
                             System.out.println("query for added courses failed");
                         }
                         break;
@@ -70,6 +71,7 @@ public class Student extends User{
                         catch (Exception e){
                             System.out.println("course not added successfully");
                         }
+                        break;
                     case "e":
                         done=true;
                 }
