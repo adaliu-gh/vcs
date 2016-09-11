@@ -1,21 +1,18 @@
+
 //import required packages
 import java.sql.*;
 import java.util.*;
 
-public class Student extends User{
+public class Instructor extends User{
     private static final String MENU="What do you want to do next?\n"
-        +"(a) get a list of added courses\n"
-        +"(b) course inquiry\n"
-        +"(c) add a course\n"
-        +"(d) drop a course\n"
-        +"(e) score inquiry\n"
-        +"(x) exit\n";
+        +"(a) get the register for a specific course\n"
+        +"(b) get a list of course that I teach\n"
+        +"(c) input scores\n"
+        +"(e) exit\n";
 
-    private static final String pro_stu_added="call pro_stu_added(?)";
-    private static final String pro_stu_courses="call pro_stu_courses(?,?,?,?,?,?,?)";
-    private static final String pro_stu_add_course="call pro_stu_add_course(?,?)";
-    private static final String pro_stu_drop_course="call pro_stu_drop_course(?,?)";
-    private static final String pro_stu_scores="call pro_stu_scores(?)";
+    private static final String pro_ins_register="call ppro_ins_register(?)";
+    private static final String pro_ins_courses="call pro_ins_courses(?)";
+    private static final String pro_ins_input_scores="call pro_ins_input_scores(?,?)";
 
     private static boolean done=false;
     private static Connection con=null;
@@ -25,16 +22,7 @@ public class Student extends User{
     private static Scanner scanner=new Scanner(System.in);
     private static String input=null;
 
-    private static String [] queryColumns={"course_id","course_code","course_name","instructor_name","department_name","campus","weekday"};
-    private static HashMap<String, String> conditions=new HashMap<String, String>();
 
-    //private static String [] printColumns={
-    //"c.id", "c.code", "c.name", "c.instructor_name",
-    //"c.department_name","c.campus","c.start_week","c.end_week",
-    //"c.weekday","c.start_time","c.end_time","c.restricted_major",
-    //"c.restricted_grade","c.restricted_gender","c.notes",
-    //"n.allowance","n.maximum"};
-    //private static HashMap<String,String> prints=new HashMap<String,String>();
 
     Student(String user, String password){
         super(user,password);
@@ -62,15 +50,15 @@ public class Student extends User{
                     //query for added courses;
                     case "a":
                         try {
-                            queryForAdded();
+                            getRegister();
                         }
                         catch (Exception e){
-                            System.out.println("query for added courses failed");
+                            System.out.println("query for register failed");
                         }
                         break;
                     case "b":
                     	try{
-                    		queryForCourses();
+                    		getCourses();
                     	}
                     	catch (Exception e){
                     		System.out.println("query for courses failed");
@@ -78,29 +66,13 @@ public class Student extends User{
                       break;
                     case "c":
                         try{
-                            addCourse();
+                            insertScores();
                         }
                         catch (Exception e){
-                            System.out.println("course not added successfully");
-                        }
-                        break;
-                    case "d":
-                        try{
-                            dropCourse();
-                        }
-                        catch (Exception e){
-                            System.out.println("course not dropped successfully");
+                            System.out.println("scores not added successfully");
                         }
                         break;
                     case "e":
-                        try{
-                            queryForScores();
-                        }
-                        catch (Exception e){
-                            System.out.println("query for scores failed");
-                        }
-                        break;
-                    case "x":
                         done=true;
                 }
 
@@ -112,96 +84,35 @@ public class Student extends User{
         }
     }
 
-    private void queryForScores() throws Exception{
-        cstmt=con.prepareCall(pro_stu_scores);
-        cstmt.setString(1,id);
-        cstmt.execute();
-        rs=cstmt.getResultSet();
-        while (rs.next()){
-            String course_id=rs.getString(1);
-            String course_name=rs.getString(2);
-            String instructor_name=rs.getString(3);
-            int score=rs.getInt(4);
-            System.out.println(course_id+"\t"
-                               +course_name+"\t"
-                               +instructor_name+"\t"
-                               +score);
-        }
-        System.out.println("query for scores succeeded");
-    }
-    private void dropCourse() throws Exception{
+    private void getRegister() throws Exception{
         //get course id
-        String course_id=null;
         System.out.println("Please input the id of the course you want to drop:");
-        course_id=scanner.next();
 
         //begin add
-        cstmt=con.prepareCall(pro_stu_drop_course);
-
+        cstmt=con.prepareCall(pro_ins_register);
         cstmt.setString(1,course_id);
-        cstmt.setString(1,id);
-
         cstmt.execute();
-        System.out.println("drop the course "+ course_id+" successfully");
-
-    }
-
-    private void addCourse() throws Exception{
-
-        //get course id
-        String course_id=null;
-        System.out.println("Please input the id of the course you want to add:");
-        course_id=scanner.next();
-
-        //begin add
-        cstmt=con.prepareCall(pro_stu_add_course);
-
-        cstmt.setString(1,course_id);
-        cstmt.setString(1,id);
-
-        cstmt.execute();
-        System.out.println("add the course "+ course_id+" successfully");
-    }
-    private void queryForCourses() throws Exception{
-
-        //get conditions
-        for (String column:queryColumns){
-            System.out.println(column+"(if you are not sure, just input a '0'):");
-            input=scanner.next();
-            if (input.equals("0")){
-                conditions.put(column,"null");
-            }
-            else{
-                conditions.put(column,input+"%");
-            }
-        }
-
-        //begin query
-        cstmt=con.prepareCall(pro_stu_courses);
-
-        //set parameters
-        int i=1;
-        for (String column:queryColumns){
-            cstmt.setString(i,conditions.get(column));
-            i++;
-        }
-
-        //execute
-        try{
-            cstmt.execute();}
-        catch (Exception e){
-            e.printStackTrace(System.out);
-        }
         rs=cstmt.getResultSet();
 
-        //print the result
-        printOutCourses();
-        System.out.println("query for added courses success~");
+        //print query result
+        whiel(rs.next()){
+            String  student_id=rs.getString(1);
+            String  name=rs.getString(2);
+            String  major=rs.getString(3);
+            int  grade=rs.getInt(4);
+            int  gender=rs.getInt(5);
+            System.out.println(student_id+"\t"
+                               +name+"\t"
+                               +major+"\t"
+                               +grade+"\t"
+                               +gender);
+        }
+
     }
 
     private void queryForAdded() throws Exception{
 
-        cstmt=con.prepareCall(pro_stu_added);
+        cstmt=con.prepareCall(pro_ins_added);
         cstmt.setString(1,id);
         cstmt.execute();
         rs=cstmt.getResultSet();
