@@ -13,6 +13,7 @@ public class Student extends User{
     private static final String pro_stu_added="call pro_stu_added(?)";
     private static final String pro_stu_courses="call pro_stu_courses(?,?,?,?,?,?,?)";
     private static final String pro_stu_add_course="call pro_stu_add_course(?,?)";
+    private static final String pro_stu_drop_course="call pro_stu_drop_course(?,?)";
 
     private static boolean done=false;
     private static Connection con=null;
@@ -72,6 +73,14 @@ public class Student extends User{
                             System.out.println("course not added successfully");
                         }
                         break;
+                    case "d":
+                        try{
+                            dropCourse();
+                        }
+                        catch (Exception e){
+                            System.out.println("course not dropped successfully");
+                        }
+                        break;
                     case "e":
                         done=true;
                 }
@@ -82,6 +91,23 @@ public class Student extends User{
             ex.printStackTrace();
             System.out.println("connection failed");
         }
+    }
+
+    private void dropCourse() throws Exception{
+        //get course id
+        String course_id=null;
+        System.out.println("Please input the id of the course you want to drop:");
+        course_id=scanner.next();
+
+        //begin add
+        cstmt=con.prepareCall(pro_stu_drop_course);
+
+        cstmt.setString(1,course_id);
+        cstmt.setString(1,id);
+
+        cstmt.execute();
+        System.out.println("drop the course "+ course_id+" successfully");
+
     }
 
     private void addCourse() throws Exception{
