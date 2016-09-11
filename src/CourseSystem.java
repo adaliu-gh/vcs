@@ -41,22 +41,23 @@ public class CourseSystem{
                     id=scanner.next();
                     System.out.println("Enter password:");
                     pass=scanner.next();
+
+                    switch (input){
+                        //if the user is a student
+                        case "s":
+                            Student stu=new Student(id,pass);
+                            us.useDatabase();
+                            break;
+                    }
+
                 }
                 else {
+                    //wrong input
                     System.out.println("Wrong input, please try again...");
                     System.out.println("a for administrator, s for student, i for instructor, q for quit...");
                 }
             }
         }
 
-        //if not quit, create user instance and connect the database;
-        Student us=new Student(id,pass);
-        try {
-            us.useDatabase();
-        }
-        catch (Exception ex){
-            System.out.println("a new user cannot be created");
-            System.exit(-1);
-        }
     }
 }
