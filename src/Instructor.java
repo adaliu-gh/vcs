@@ -16,7 +16,6 @@ public class Instructor extends User{
 
     private boolean done=false;
     private Connection con=null;
-    private Statement stmt=null;
     private CallableStatement cstmt=null;
     private ResultSet rs=null;
     private Scanner scanner=new Scanner(System.in);
@@ -24,7 +23,7 @@ public class Instructor extends User{
 
 
 
-    Student(String user, String password){
+    Instructor(String user, String password){
         super(user,password);
     }
 
@@ -33,14 +32,13 @@ public class Instructor extends User{
 
         try{
             //register jdbc driver
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            Class.forName(JDBC_DRIVER).newInstance();
             System.out.println("Driver status OK");
 
             //open a connection
             System.out.println("Connecting to the course system...");
             con=DriverManager.getConnection(DB_URL,id,pass);
             System.out.println("Connection OK");
-            stmt=con.createStatement();
 
             //open a menu
             while (!done){
@@ -87,7 +85,9 @@ public class Instructor extends User{
 
     private void getRegister() throws Exception{
         //get course id
+    	String course_id=null;
         System.out.println("Please input the id of the course you want to drop:");
+        course_id=scanner.next();
 
         //begin add
         cstmt=con.prepareCall(pro_ins_register);
@@ -96,7 +96,7 @@ public class Instructor extends User{
         rs=cstmt.getResultSet();
 
         //print query result
-        whiel(rs.next()){
+        while(rs.next()){
             String  student_id=rs.getString(1);
             String  name=rs.getString(2);
             String  major=rs.getString(3);
@@ -117,7 +117,7 @@ public class Instructor extends User{
         cstmt.setString(1,id);
         cstmt.execute();
         rs=cstmt.getResultSet();
-        printOutCourses();
+        printOutInsCourses();
         System.out.println("query for courses success~");
     }
 
@@ -133,16 +133,22 @@ public class Instructor extends User{
         System.out.println("Which student?...");
         student_id=scanner.next();
         System.out.println("How many scores?...");
-        score=(int) scanner.next();
+        score=Integer.parseInt(scanner.next());
 
-        //set parameters;
-        cstmt.setString(1,student_id);
-        cstmt.setString(2,course_id);
-        cstmt.setInt(3,score);
+        if ((score>=0) && (score<=100)) {
+            //set parameters;
+            cstmt.setString(1,student_id);
+            cstmt.setString(2,course_id);
+            cstmt.setInt(3,score);
 
-        //execute
-        cstmt.execute();
-        System.out.println("insert the score successfully");
+            //execute
+            cstmt.execute();
+            System.out.println("insert the score successfully");
+        }
+        else{
+            System.out.println("the score "+score+" is out of range, please check it before you insert it");
+        }
+
     }
 
     private void printOutInsCourses(){

@@ -291,7 +291,8 @@ IN id CHAR(11))
 
 #+END_SRC
 *** instructor
-**** 录入成绩
+**** DONE 录入成绩
+CLOSED: [2016-09-12 一 12:24]
 #+BEGIN_SRC sql
 create procedure pro_ins_input_scores(
 in student_id char(11),

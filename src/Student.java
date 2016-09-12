@@ -17,24 +17,15 @@ public class Student extends User{
     private static final String pro_stu_drop_course="call pro_stu_drop_course(?,?)";
     private static final String pro_stu_scores="call pro_stu_scores(?)";
 
-    private static boolean done=false;
-    private static Connection con=null;
-    private static Statement stmt=null;
-    private static CallableStatement cstmt=null;
-    private static ResultSet rs=null;
-    private static Scanner scanner=new Scanner(System.in);
-    private static String input=null;
+    private boolean done=false;
+    private Connection con=null;
+    private CallableStatement cstmt=null;
+    private ResultSet rs=null;
+    private Scanner scanner=new Scanner(System.in);
+    private String input=null;
 
     private static String [] queryColumns={"course_id","course_code","course_name","instructor_name","department_name","campus","weekday"};
     private static HashMap<String, String> conditions=new HashMap<String, String>();
-
-    //private static String [] printColumns={
-    //"c.id", "c.code", "c.name", "c.instructor_name",
-    //"c.department_name","c.campus","c.start_week","c.end_week",
-    //"c.weekday","c.start_time","c.end_time","c.restricted_major",
-    //"c.restricted_grade","c.restricted_gender","c.notes",
-    //"n.allowance","n.maximum"};
-    //private static HashMap<String,String> prints=new HashMap<String,String>();
 
     Student(String user, String password){
         super(user,password);
@@ -44,14 +35,13 @@ public class Student extends User{
 
         try{
             //register jdbc driver
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
+            Class.forName(JDBC_DRIVER).newInstance();
             System.out.println("Driver status OK");
 
             //open a connection
             System.out.println("Connecting to the course system...");
             con=DriverManager.getConnection(DB_URL,id,pass);
             System.out.println("Connection OK");
-            stmt=con.createStatement();
 
             //open a menu
             while (!done){
