@@ -291,6 +291,15 @@ IN id CHAR(11))
 
 #+END_SRC
 *** instructor
+**** 录入成绩
+#+BEGIN_SRC sql
+create procedure pro_ins_input_scores(
+in student_id char(11),
+in course_id char(13),
+in score int(3))
+update register set score=score 
+    where course_id=course_id and student_id=student_id;
+#+END_SRC
 **** DONE 得到某个老师所教授课程清单
 CLOSED: [2016-09-09 五 11:09]
 #+BEGIN_SRC sql
@@ -298,7 +307,7 @@ CREATE PROCEDURE pro_ins_courses(
 IN id CHAR(11))
 
   SELECT 
-  id, code, name, instructor_name,
+  id, code, name, instructor_name,credits,
   department_name,campus,start_week,end_week,
   weekday,start_time,end_time,restricted_major,
   restricted_grade,restricted_gender,notes

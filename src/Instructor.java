@@ -14,19 +14,20 @@ public class Instructor extends User{
     private static final String pro_ins_courses="call pro_ins_courses(?)";
     private static final String pro_ins_input_scores="call pro_ins_input_scores(?,?)";
 
-    private static boolean done=false;
-    private static Connection con=null;
-    private static Statement stmt=null;
-    private static CallableStatement cstmt=null;
-    private static ResultSet rs=null;
-    private static Scanner scanner=new Scanner(System.in);
-    private static String input=null;
+    private boolean done=false;
+    private Connection con=null;
+    private Statement stmt=null;
+    private CallableStatement cstmt=null;
+    private ResultSet rs=null;
+    private Scanner scanner=new Scanner(System.in);
+    private String input=null;
 
 
 
     Student(String user, String password){
         super(user,password);
     }
+
     public void useDatabase(){
 
 
@@ -110,37 +111,60 @@ public class Instructor extends User{
 
     }
 
-    private void queryForAdded() throws Exception{
+    private void getCourses() throws Exception{
 
-        cstmt=con.prepareCall(pro_ins_added);
+        cstmt=con.prepareCall(pro_ins_courses);
         cstmt.setString(1,id);
         cstmt.execute();
         rs=cstmt.getResultSet();
         printOutCourses();
-        System.out.println("query for added courses success~");
+        System.out.println("query for courses success~");
     }
-    private void printOutCourses(){
+
+    private void insertScores() throws Exception{
+        String course_id=null;
+        String student_id=null;
+        int score=0;
+        cstmt=con.prepareCall(pro_ins_input_scores);
+
+        //get the ids of course and student
+        System.out.println("Which course?...");
+        course_id=scanner.next();
+        System.out.println("Which student?...");
+        student_id=scanner.next();
+        System.out.println("How many scores?...");
+        score=(int) scanner.next();
+
+        //set parameters;
+        cstmt.setString(1,student_id);
+        cstmt.setString(2,course_id);
+        cstmt.setInt(3,score);
+
+        //execute
+        cstmt.execute();
+        System.out.println("insert the score successfully");
+    }
+
+    private void printOutInsCourses(){
 
         try{
             while (rs.next()){
-                String c_id=rs.getString("c.id");
-                String c_code=rs.getString("c.code");
-                String c_name=rs.getString("c.name");
-                String c_instructor_name=rs.getString("c.instructor_name");
-                String c_credits=rs.getString("c.credits");
-                String c_department_name=rs.getString("c.department_name");
-                String c_campus=rs.getString("c.campus");
-                int c_start_week=rs.getInt("c.start_week");
-                int c_end_week=rs.getInt("c.end_week");
-                int c_weekday=rs.getInt("c.weekday");
-                int c_start_time=rs.getInt("c.start_time");
-                int c_end_time=rs.getInt("c.end_time");
-                String c_restricted_major=rs.getString("c.restricted_major");
-                String c_restricted_grade=rs.getString("c.restricted_grade");
-                int c_restricted_gender=rs.getInt("c.restricted_gender");
-                String c_notes=rs.getString("c.notes");
-                int n_allowance=rs.getInt("n.allowance");
-                int n_maximum=rs.getInt("n.maximum");
+                String c_id=rs.getString("id");
+                String c_code=rs.getString("code");
+                String c_name=rs.getString("name");
+                String c_instructor_name=rs.getString("instructor_name");
+                String c_credits=rs.getString("credits");
+                String c_department_name=rs.getString("department_name");
+                String c_campus=rs.getString("campus");
+                int c_start_week=rs.getInt("start_week");
+                int c_end_week=rs.getInt("end_week");
+                int c_weekday=rs.getInt("weekday");
+                int c_start_time=rs.getInt("start_time");
+                int c_end_time=rs.getInt("end_time");
+                String c_restricted_major=rs.getString("restricted_major");
+                String c_restricted_grade=rs.getString("restricted_grade");
+                int c_restricted_gender=rs.getInt("restricted_gender");
+                String c_notes=rs.getString("notes");
                 System.out.println(c_id+"\t"
                                    +c_code+"\t"
                                    +c_name+"\t"
@@ -156,9 +180,7 @@ public class Instructor extends User{
                                    +c_restricted_major+"\t"
                                    +c_restricted_grade+"\t"
                                    +c_restricted_gender+"\t"
-                                   +c_notes+"\t"
-                                   +n_allowance+"\t"
-                                   +n_maximum);
+                                   +c_notes);
             }
         }
         catch (Exception e){
