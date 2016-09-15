@@ -1,12 +1,19 @@
 #+TITLE:虚拟选课系统数据库设计
 #+SETUPFILE:/home/ada/Documents/org-html-themes/setup/theme-bigblow.setup
 * tables
+** userRole
+#+BEGIN_SRC sql
+create table userRole(
+id char(11) not null,
+pass char(30) not null,
+role char(1) not null,
+primary key (id));
+#+END_SRC
 ** student
 #+BEGIN_SRC sql
 CREATE TABLE student(
 id CHAR(11) NOT NULL,
 name CHAR(20) NOT NULL,
-pass CHAR(30) NOT NULL,
 inschool TINYINT(1) NOT NULL,
 gender TINYINT(1) NOT NULL,
 major CHAR(20) NOT NULL,
@@ -19,7 +26,6 @@ PRIMARY KEY (id));
 CREATE TABLE instructor(
 id CHAR(11) NOT NULL,
 name CHAR(20) NOT NULL,
-pass CHAR(30) NOT NULL,
 gender TINYINT(1) NOT NULL,
 PRIMARY KEY (id));
 #+END_SRC
