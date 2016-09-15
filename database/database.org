@@ -33,9 +33,8 @@ PRIMARY KEY (id));
 #+BEGIN_SRC sql
 CREATE TABLE course(
 id CHAR(13) NOT NULL,
-code CHAR(10) NOT NULL,
 name CHAR(20) NOT NULL,
-credits TINYINT(1) NOT NULL,
+credits float NOT NULL,
 instructor_name CHAR(20) NOT NULL,
 instructor_id CHAR(11) NOT NULL,
 department_name CHAR(20) NOT NULL,
@@ -52,7 +51,7 @@ PRIMARY KEY (id));
 *** INDEX
 **** course inquiry
 #+BEGIN_SRC sql
-CREATE index course_inquiry ON course(id,code,name,instructor_name,
+CREATE index course_inquiry ON course(id,name,instructor_name,
 department_name,campus,weekday);
 #+END_SRC
 ** number
@@ -181,6 +180,16 @@ DELIMITER;
 #+END_SRC
 ** 存储过程/函数
 *** 辅助
+**** 检查身份
+#+BEGIN_SRC sql
+create procedure get_role(
+id  char(11),
+pass char(30))
+select 
+role
+from userRole as u
+where u.id=id and u.pass=pass;
+#+END_SRC
 **** DONE 获得余量
 CLOSED: [2016-09-09 五 11:08]
 #+BEGIN_SRC sql
@@ -245,10 +254,11 @@ begin
   select fun_get_maximum(course_id) into @maximum;
   select fun_get_allowance(course_id) into @allowance;
 
-  if @maximum<1 then
+  if @maximum<0 then
   rollback;
   else
   commit;
+  end if;
 
 end //
 delimiter;
@@ -259,7 +269,7 @@ CLOSED: [2016-09-09 五 11:09]
 CREATE PROCEDURE pro_stu_added(
 IN id CHAR(11))
   SELECT 
-  c.id, c.code, c.name, c.instructor_name,c.credits,
+  c.id, c.name, c.instructor_name,c.credits,
   c.department_name,c.campus,c.classrom,c.start_week,c.end_week,
   c.weekday,c.start_time,c.end_time,c.notes,
   n.allowance,n.maximum 
@@ -272,26 +282,23 @@ CLOSED: [2016-09-09 五 12:53]
 #+BEGIN_SRC sql
 CREATE PROCEDURE pro_stu_courses(
 IN id CHAR(14),
-IN code CHAR(11),
 IN name CHAR(21),
 IN instructor_name CHAR(11),
 IN department_name CHAR(11),
 IN campus CHAR(21),
 IN weekday CHAR(4))
   SELECT 
-  c.id, c.code, c.name, c.instructor_name,
+  c.id,  c.name, c.instructor_name,c.credits,
   c.department_name,c.campus,c.classroom,c.start_week,c.end_week,
   c.weekday,c.start_time,c.end_time,c.notes,
   n.allowance,n.maximum
-  FROM course AS c, number as n
-  where c.id =n.id
-    and c.id LIKE IF("null",c.id,id) 
-    AND c.code LIKE IF("null",c.code,code) 
-    AND c.name LIKE IF("null",c.name,name)
-    AND c.instructor_name LIKE IF("null",c.instructor_name,instructor_name)
-    AND c.department_name LIKE IF("null",c.department_name,department_name) 
-    AND c.campus LIKE IF("null",c.campus,campus) 
-    AND c.weekday LIKE IF("null",c.weekday,weekday)
+  FROM course AS c join number as n on c.id=n.id
+  where c.id LIKE IF(c.id="null",c.id,id) 
+    AND c.name LIKE IF(c.name="null",c.name,name)
+    AND c.instructor_name LIKE IF(c.instructor_name="null",c.instructor_name,instructor_name)
+    AND c.department_name LIKE IF(c.department_name="null",c.department_name,department_name) 
+    AND c.campus LIKE IF(c.campus="null",c.campus,campus) 
+    AND c.weekday LIKE IF(c.weekday="null",c.weekday,weekday)
   ORDER BY c.id asc;
 #+END_SRC
 **** DONE 查询成绩
@@ -324,7 +331,7 @@ CREATE PROCEDURE pro_ins_courses(
 IN id CHAR(11))
 
   SELECT 
-  id, code, name, instructor_name,credits,
+  id, name, instructor_name,credits,
   department_name,campus,classroom,start_week,end_week,
   weekday,start_time,end_time, notes
   FROM course 

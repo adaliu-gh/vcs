@@ -57,4 +57,8 @@
 ****** 对函数的利用
 ****** ...
 ***** 新增userrole表以进行身份检测
+**** java
+***** 更改程序的逻辑流程，新增Database.java
+***** 修改student.java, 简单地测试通过
+***** TODO 余下instructor, administrator 的修改
 
