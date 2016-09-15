@@ -14,6 +14,13 @@ public class CourseSystem{
     		                       "(i)structor\n" +
     		                       "(q)uit";
 
+    private static void getIdPass(){
+        System.out.println("Please input your id number:");
+        id=scanner.next();
+        System.out.println("Enter password:");
+        pass=scanner.next();
+    }
+
     public static void main(String[] args){
 
         //initialize identities-list;
@@ -28,45 +35,33 @@ public class CourseSystem{
         while (!checkIdentityDone){
             System.out.println(MENU);
             input=scanner.next();
-            if (input.equals("q")){
-                checkIdentityDone=true;
-                System.out.println("Bye~");
-                System.exit(0);
-            }
-            else {
-                if (identities.contains(input)){
-                    System.out.println("Please input your id number:");
-                    id=scanner.next();
-                    System.out.println("Enter password:");
-                    pass=scanner.next();
-
-                    switch (input){
-
+            switch (input){
+                        //if quit
+                    case "q":
+                        checkIdentityDone=true;
+                        System.out.println("Bye~");
+                        System.exit(0);
                         //if the user is a student
-                        case "s":
-                            Student stu=new Student(id,pass);
-                            stu.useDatabase();
-                            break;
-
+                    case "s":
+                        getIdPass();
+                        Student stu=new Student(id,pass);
+                        stu.useDatabase();
+                        break;
                         //if the user is an instructor
-                        case "i":
-                        	Instructor ins=new Instructor(id,pass);
-                        	ins.useDatabase();
-                              break;
-
+                    case "i":
+                      getIdPass();
+                      Instructor ins=new Instructor(id,pass);
+                      ins.useDatabase();
+                      break;
                         //if the user is an administrator;
-                        case "a":
-                            Administrator admin=new Administrator(id,pass);
-                            admin.useDatabase();
-                            break;
-                    }
-
-                }
-                else {
-                    //wrong input
-                    System.out.println("Wrong input, please try again...");
-                    System.out.println("a for administrator, s for student, i for instructor, q for quit...");
-                }
+                    case "a":
+                        getIdPass();
+                        Administrator admin=new Administrator(id,pass);
+                        admin.useDatabase();
+                        break;
+                    default:
+                        System.out.println("Wrong input, please try again...");
+                        System.out.println("a for administrator, s for student, i for instructor, q for quit...");
             }
         }
 

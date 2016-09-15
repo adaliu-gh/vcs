@@ -20,6 +20,7 @@ public class Student extends User{
     private boolean done=false;
     private Connection con=null;
     private CallableStatement cstmt=null;
+    private Statement stmt=null;
     private ResultSet rs=null;
     private Scanner scanner=new Scanner(System.in);
     private String input=null;
@@ -40,9 +41,13 @@ public class Student extends User{
 
             //open a connection
             System.out.println("Connecting to the course system...");
-            con=DriverManager.getConnection(DB_URL,id,pass);
+            con=DriverManager.getConnection(DB_URL,"root","");
             System.out.println("Connection OK");
 
+            if (!checkIdentityStu(id,pass)){
+                System.out.println("Sorry, identify checking failed");
+                return;
+            }
             //open a menu
             while (!done){
                 System.out.println(MENU);
@@ -198,6 +203,23 @@ public class Student extends User{
         printOutCourses();
         System.out.println("query for added courses success~");
     }
+
+    private boolean checkIdentityStu(String id, String pass){
+    	boolean identity=true;
+        try {
+    	stmt=con.createStatement();
+        String sql=String.format("select id,pass from student where id='%s' and pass='%s'",id,pass);
+        rs=stmt.executeQuery(sql);
+        if (!rs.next()){
+           identity=false;
+        	}
+        }
+        catch (Exception e){
+        	e.printStackTrace();
+        }
+        return identity;
+    }
+
     private void printOutCourses(){
 
         try{
@@ -214,9 +236,6 @@ public class Student extends User{
                 int c_weekday=rs.getInt("c.weekday");
                 int c_start_time=rs.getInt("c.start_time");
                 int c_end_time=rs.getInt("c.end_time");
-                String c_restricted_major=rs.getString("c.restricted_major");
-                String c_restricted_grade=rs.getString("c.restricted_grade");
-                int c_restricted_gender=rs.getInt("c.restricted_gender");
                 String c_notes=rs.getString("c.notes");
                 int n_allowance=rs.getInt("n.allowance");
                 int n_maximum=rs.getInt("n.maximum");
@@ -232,9 +251,6 @@ public class Student extends User{
                                    +c_weekday+"\t"
                                    +c_start_time+"\t"
                                    +c_end_time+"\t"
-                                   +c_restricted_major+"\t"
-                                   +c_restricted_grade+"\t"
-                                   +c_restricted_gender+"\t"
                                    +c_notes+"\t"
                                    +n_allowance+"\t"
                                    +n_maximum);

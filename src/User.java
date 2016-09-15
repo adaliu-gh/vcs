@@ -1,7 +1,7 @@
 
 abstract public class User{
     protected static final String JDBC_DRIVER="com.mysql.jdbc.Driver";
-    protected static final String DB_URL="jdbc:mysql://localhost/course?useSSL=no";
+    protected static final String DB_URL="jdbc:mysql://10.240.0.241/vcs?useSSL=no";
     protected final String id;
     protected final String pass;
 

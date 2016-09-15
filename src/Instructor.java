@@ -16,6 +16,7 @@ public class Instructor extends User{
 
     private boolean done=false;
     private Connection con=null;
+    private Statement stmt=null;
     private CallableStatement cstmt=null;
     private ResultSet rs=null;
     private Scanner scanner=new Scanner(System.in);
@@ -37,8 +38,13 @@ public class Instructor extends User{
 
             //open a connection
             System.out.println("Connecting to the course system...");
-            con=DriverManager.getConnection(DB_URL,id,pass);
+            con=DriverManager.getConnection(DB_URL,"root","");
             System.out.println("Connection OK");
+
+            if (!checkIdentityIns(id,pass)){
+                System.out.println("Sorry, identity checking failed");
+                return;
+            }
 
             //open a menu
             while (!done){
@@ -151,6 +157,24 @@ public class Instructor extends User{
 
     }
 
+    private boolean checkIdentityIns(String id, String pass){
+    	boolean identity=true;
+    	try{
+        stmt=con.createStatement();
+        String sql=String.format("select id,pass from instructor where id='%s' and pass='%s'",id,pass);
+        rs=stmt.executeQuery(sql);
+        if (!rs.next()){
+           identity=false;
+        }
+        
+    	}
+    	catch (Exception e){
+    		e.printStackTrace();
+    	}
+    	return identity;
+
+    }
+
     private void printOutInsCourses(){
 
         try{
@@ -167,9 +191,6 @@ public class Instructor extends User{
                 int c_weekday=rs.getInt("weekday");
                 int c_start_time=rs.getInt("start_time");
                 int c_end_time=rs.getInt("end_time");
-                String c_restricted_major=rs.getString("restricted_major");
-                String c_restricted_grade=rs.getString("restricted_grade");
-                int c_restricted_gender=rs.getInt("restricted_gender");
                 String c_notes=rs.getString("notes");
                 System.out.println(c_id+"\t"
                                    +c_code+"\t"
@@ -183,9 +204,6 @@ public class Instructor extends User{
                                    +c_weekday+"\t"
                                    +c_start_time+"\t"
                                    +c_end_time+"\t"
-                                   +c_restricted_major+"\t"
-                                   +c_restricted_grade+"\t"
-                                   +c_restricted_gender+"\t"
                                    +c_notes);
             }
         }

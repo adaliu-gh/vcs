@@ -5,12 +5,12 @@
 #+BEGIN_SRC sql
 CREATE TABLE student(
 id CHAR(11) NOT NULL,
-name CHAR(10) NOT NULL,
+name CHAR(20) NOT NULL,
 pass CHAR(30) NOT NULL,
 inschool TINYINT(1) NOT NULL,
 gender TINYINT(1) NOT NULL,
 major CHAR(20) NOT NULL,
-department CHAR(10) NOT NULL,
+department CHAR(20) NOT NULL,
 grade TINYINT(1) NOT NULL,
 PRIMARY KEY (id));
 #+END_SRC
@@ -18,7 +18,7 @@ PRIMARY KEY (id));
 #+BEGIN_SRC sql
 CREATE TABLE instructor(
 id CHAR(11) NOT NULL,
-name CHAR(10) NOT NULL,
+name CHAR(20) NOT NULL,
 pass CHAR(30) NOT NULL,
 gender TINYINT(1) NOT NULL,
 PRIMARY KEY (id));
@@ -30,11 +30,11 @@ id CHAR(13) NOT NULL,
 code CHAR(10) NOT NULL,
 name CHAR(20) NOT NULL,
 credits TINYINT(1) NOT NULL,
-instructor_name CHAR(10) NOT NULL,
+instructor_name CHAR(20) NOT NULL,
 instructor_id CHAR(11) NOT NULL,
-department_name CHAR(10) NOT NULL,
+department_name CHAR(20) NOT NULL,
 campus CHAR(20) DEFAULT 'hd',
-classroom CHAR(5),
+classroom CHAR(10),
 start_week TINYINT(2) NOT NULL,
 end_week TINYINT(2) NOT NULL,
 weekday CHAR(3) NOT NULL,
@@ -64,13 +64,17 @@ id BIGINT NOT NULL AUTO_INCREMENT,
 course_id CHAR(13) NOT NULL,
 course_name CHAR(20) NOT NULL,
 student_id CHAR(11) NOT NULL,
-student_name CHAR(10) NOT NULL,
-instructor_name CHAR(10) NOT NULL,
+student_name CHAR(20) NOT NULL,
+instructor_name CHAR(20) NOT NULL,
 instructor_id CHAR(11) NOT NULL,
 score INT(3) UNSIGNED default NULL,
 PRIMARY KEY (id));
 #+END_SRC
 *** INDEX
+**** csid //防止重复选课
+#+BEGIN_SRC sql
+create unique index on register(course_id,student_id); 
+#+END_SRC
 **** instructor
 #+BEGIN_SRC sql
 CREATE INDEX instructor ON register(instructor_id);
@@ -87,14 +91,14 @@ CREATE INDEX course ON register(course_id);
 #+BEGIN_SRC sql
 CREATE TABLE major(
 name CHAR(20) NOT NULL,
-department CHAR(10) NOT NULL,
-counselor CHAR(10) NOT NULL,
+department CHAR(20) NOT NULL,
+counselor CHAR(20) NOT NULL,
 PRIMARY KEY (name));
 #+END_SRC
 ** department
 #+BEGIN_SRC sql
 CREATE TABLE department(
-name CHAR(10) NOT NULL,
+name CHAR(20) NOT NULL,
 PRIMARY KEY (name));
 #+END_SRC
 * relations
@@ -183,7 +187,7 @@ BEGIN
     SELECT allowance INTO @allowance
     FROM number
     WHERE id=id;
-    RETURN(allowance);
+    RETURN(@allowance);
 END //
 DELIMITER;
 #+END_SRC
@@ -191,15 +195,15 @@ DELIMITER;
 CLOSED: [2016-09-09 五 11:08]
 #+BEGIN_SRC sql
 DELIMITER //
-CREATE function fun_get_maxium(
+CREATE function fun_get_maximum(
 id CHAR(13))
 RETURNS INT
 BEGIN
-    DECLARE maxium INT;
-    SELECT maxium INTO @maxium
+    DECLARE maximum INT;
+    SELECT maximum INTO @maximum
     FROM number
     WHERE id=id;
-    RETURN(maxium);
+    RETURN(@maximum);
 END //
 DELIMITER;
 #+END_SRC
@@ -208,11 +212,11 @@ DELIMITER;
 CLOSED: [2016-09-11 日 13:24]
 #+BEGIN_SRC  sql
 create procedure pro_stu_drop_course(
-in course_id char(13),
-in student_id char(11))
+in c_id char(13),
+in s_id char(11))
 delete from register
 where 
-  course_id=course_id and student_id=student_id;
+  course_id=c_id and student_id=s_id;
 #+END_SRC
 **** DONE 添加课程
 CLOSED: [2016-09-13 二 13:07]
@@ -232,10 +236,10 @@ begin
   from course as c, student as s
   where c.id=course_id and s.id=student_id;
   
-  select fun_get_maximum(course_id) into @maxium;
+  select fun_get_maximum(course_id) into @maximum;
   select fun_get_allowance(course_id) into @allowance;
 
-  if maximum<=allowance then
+  if @maximum<1 then
   rollback;
   else
   commit;
@@ -250,7 +254,7 @@ CREATE PROCEDURE pro_stu_added(
 IN id CHAR(11))
   SELECT 
   c.id, c.code, c.name, c.instructor_name,c.credits,
-  c.department_name,c.campus,c.start_week,c.end_week,
+  c.department_name,c.campus,c.classrom,c.start_week,c.end_week,
   c.weekday,c.start_time,c.end_time,c.notes,
   n.allowance,n.maximum 
   FROM course AS c, number as n
@@ -270,7 +274,7 @@ IN campus CHAR(21),
 IN weekday CHAR(4))
   SELECT 
   c.id, c.code, c.name, c.instructor_name,
-  c.department_name,c.campus,c.start_week,c.end_week,
+  c.department_name,c.campus,c.classroom,c.start_week,c.end_week,
   c.weekday,c.start_time,c.end_time,c.notes,
   n.allowance,n.maximum
   FROM course AS c, number as n
@@ -304,8 +308,8 @@ create procedure pro_ins_input_scores(
 in student_id char(11),
 in course_id char(13),
 in score int(3))
-update register set score=score 
-    where course_id=course_id and student_id=student_id;
+update register as r set r.score=score 
+    where r.course_id=course_id and r.student_id=student_id;
 #+END_SRC
 **** DONE 得到某个老师所教授课程清单
 CLOSED: [2016-09-09 五 11:09]
@@ -315,7 +319,7 @@ IN id CHAR(11))
 
   SELECT 
   id, code, name, instructor_name,credits,
-  department_name,campus,start_week,end_week,
+  department_name,campus,classroom,start_week,end_week,
   weekday,start_time,end_time, notes
   FROM course 
   WHERE instructor_id=id;
