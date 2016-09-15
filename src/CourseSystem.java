@@ -1,16 +1,18 @@
-
-import java.util.*;
+import java.io.*;
 
 public class CourseSystem{
 
-
     public static void main(String[] args){
-
-        Scanner scanner=new Scanner(System.in);
-        String input=null;
+        String url="jdbc:mysql://localhost/vcs?useSSL=no";
+        String user="root";
+        String password="";
+        String id=null;
+        String pass=null;
+        InputStreamReader isr=new InputStreamReader(System.in);
+        BufferedReader buffer=new BufferedReader(isr);
 
         //connect to database
-        boolean con=Database.connect();
+        boolean con=Database.connect(url,user,password);
         if (!con){
             System.out.println("Sorry, cannot connect to database");
             System.exit(-1);
@@ -19,13 +21,23 @@ public class CourseSystem{
         //login
         while (true){
             System.out.println("Enter ID (if you want to quit, just enter 'q'):");
-            String id=scanner.next();
+            try {
+                id=buffer.readLine();
+            }catch (Exception e){
+                e.printStackTrace();
+                continue;
+            }
             if (id.equals("q")){
-                System.exit(0);
-                System.out.println("Bye~");
+            	System.out.println("Bye~");
+            	System.exit(0);                
             }
             System.out.println("Enter password:");
-            String pass=scanner.next();
+            try {
+                pass=buffer.readLine();
+            }catch (Exception e){
+                e.printStackTrace();
+                continue;
+            }
 
             //check identify
             String identity=Database.checkIdentity(id,pass);
@@ -43,8 +55,5 @@ public class CourseSystem{
                     break;
             }
         }
-
-
-
     }
 }

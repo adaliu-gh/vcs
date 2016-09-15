@@ -9,5 +9,5 @@ abstract public class User{
         id=user;
         pass=password;
     }
-    public abstract void useDatabase();
+    public abstract void enterSystem();
 }

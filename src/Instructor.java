@@ -28,7 +28,7 @@ public class Instructor extends User{
         super(user,password);
     }
 
-    public void useDatabase(){
+    public void enterSystem(){
 
 
         try{
