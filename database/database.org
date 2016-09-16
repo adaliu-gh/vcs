@@ -247,7 +247,7 @@ begin
   start transaction;
   insert into register(course_id,course_name,student_id,student_name,
     instructor_id,instructor_name)
-  select c.id, c.name, s.id,s.name,c.instructor_name, c.instructor_id
+  select c.id, c.name, s.id,s.name,c.instructor_id, c.instructor_name
   from course as c, student as s
   where c.id=course_id and s.id=student_id;
   
@@ -305,12 +305,12 @@ IN weekday CHAR(4))
 CLOSED: [2016-09-09 五 11:09]
 #+BEGIN_SRC sql
 CREATE PROCEDURE pro_stu_scores(
-IN id CHAR(11))
+IN s_id CHAR(11))
 
   SELECT
   course_id, course_name,instructor_name,score
   FROM register 
-  WHERE student_id=id AND score !=NULL; 
+  WHERE student_id=s_id AND score is not NULL; 
 
 #+END_SRC
 *** instructor
@@ -318,8 +318,8 @@ IN id CHAR(11))
 CLOSED: [2016-09-12 一 12:24]
 #+BEGIN_SRC sql
 create procedure pro_ins_input_scores(
-in student_id char(11),
 in course_id char(13),
+in student_id char(11),
 in score int(3))
 update register as r set r.score=score 
     where r.course_id=course_id and r.student_id=student_id;
@@ -328,14 +328,14 @@ update register as r set r.score=score
 CLOSED: [2016-09-09 五 11:09]
 #+BEGIN_SRC sql
 CREATE PROCEDURE pro_ins_courses(
-IN id CHAR(11))
+IN i_id CHAR(11))
 
   SELECT 
   id, name, instructor_name,credits,
   department_name,campus,classroom,start_week,end_week,
   weekday,start_time,end_time, notes
   FROM course 
-  WHERE instructor_id=id;
+  WHERE instructor_id=i_id;
 #+END_SRC
 **** DONE 得到单个课程的花名册
 CLOSED: [2016-09-09 五 11:09]

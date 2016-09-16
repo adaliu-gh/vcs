@@ -29,7 +29,7 @@ public class CourseSystem{
             }
             if (id.equals("q")){
             	System.out.println("Bye~");
-            	System.exit(0);                
+            	System.exit(0);
             }
             System.out.println("Enter password:");
             try {
@@ -53,6 +53,9 @@ public class CourseSystem{
                     Instructor ins=new Instructor(id,pass);
                     ins.enterSystem();
                     break;
+                case "a":
+                    Administrator admin=new Administrator(id,pass);
+                    admin.enterSystem();
             }
         }
     }

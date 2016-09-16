@@ -1,4 +1,3 @@
-//import required packages
 import java.sql.*;
 import java.util.*;
 
@@ -14,6 +13,7 @@ public class Student extends User{
     private ResultSet rs=null;
     private Scanner scanner=new Scanner(System.in);
     private String input=null;
+    private String sql=null;
 
     private static String [] queryColumns={"course_id","course_name","instructor_name","department_name","campus","weekday"};
     private static HashMap<String, String> conditions=new HashMap<String, String>();
@@ -28,7 +28,6 @@ public class Student extends User{
             System.out.println(MENU);
             input=scanner.nextLine();
             switch(input){
-                //query for added courses;
                 case "a":
                     queryForAdded();
                     break;
@@ -51,7 +50,7 @@ public class Student extends User{
     }
 
     private void queryForScores(){
-        String sql=String.format("call pro_stu_scores('%s')",id);
+        sql=String.format("call pro_stu_scores('%s')",id);
         try {
             rs=Database.executeSql(sql);
             System.out.println("course_id\t course_name\t instructor_name\t score\t");
@@ -74,11 +73,16 @@ public class Student extends User{
     private void dropCourse(){
 
         String course_id=null;
-        String sql=null;
+        sql=null;
 
+        System.out.println("Enter 'q' to quit'");
         System.out.println("Please input the id of the course you want to drop:");
         course_id=scanner.nextLine();
+        if (course_id.equals("q")) {
+            return;
+        }
         sql=String.format("call pro_stu_drop_course('%s','%s')",course_id,id);
+        System.out.println(sql);
         try {
             rs=Database.executeSql(sql);
             System.out.println("drop the course "+ course_id+" successfully");
@@ -89,10 +93,14 @@ public class Student extends User{
     }
 
     private void addCourse(){
-        String sql=null;
+        sql=null;
         String course_id=null;
+        System.out.println("Enter 'q' to quit'");
         System.out.println("Please input the id of the course you want to add:");
         course_id=scanner.nextLine();
+        if (course_id.equals("q")) {
+            return;
+        }
         sql=String.format("call pro_stu_add_course('%s','%s')",course_id,id);
         try {
             rs=Database.executeSql(sql);
@@ -105,10 +113,14 @@ public class Student extends User{
 
     private void queryForCourses(){
         String input=null;
-        String sql="call pro_stu_courses(";
+        sql="call pro_stu_courses(";
+        System.out.println("Enter 'q' to quit'");
         for (String column:queryColumns){
             System.out.println(column+"(if you are not sure, just hit 'ENTER'):");
             input=scanner.nextLine();
+            if (input.equals("q")){
+                return;
+            }
             if (input.equals("")){
                 conditions.put(column,"null");
             }
@@ -137,7 +149,7 @@ public class Student extends User{
     }
 
     private void queryForAdded(){
-        String sql=String.format("call pro_stu_added('%s')",id);
+        sql=String.format("call pro_stu_added('%s')",id);
         try {
             rs=Database.executeSql(sql);
             printOutCourses();
@@ -151,6 +163,7 @@ public class Student extends User{
     private void printOutCourses(){
 
         try{
+            System.out.println("id\t name\t instructor_name\t credits\t department_name\t campus\t classroom\t start_week\t end_week\t weekday\t start_time\t end_time\t notes\t allowance\t maximum");
             while (rs.next()){
                 String c_id=rs.getString("c.id");
                 String c_name=rs.getString("c.name");
