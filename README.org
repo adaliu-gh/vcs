@@ -64,3 +64,7 @@
 - 好了，继续画流程图
 *** <2016-09-17 六> 
 - 学习maven，用maven来组织项目
+*** <2016-09-20 二> 
+- gui
+- CSAPP (chapter 3 assembly language)
+  
