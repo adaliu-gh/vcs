@@ -1,0 +1,351 @@
+#+TITLE:虚拟选课系统数据库设计
+#+SETUPFILE:/home/ada/Documents/org-html-themes/setup/theme-bigblow.setup
+* tables
+** userRole
+#+BEGIN_SRC sql
+create table userRole(
+id char(11) not null,
+pass char(30) not null,
+role char(1) not null,
+primary key (id));
+#+END_SRC
+** student
+#+BEGIN_SRC sql
+CREATE TABLE student(
+id CHAR(11) NOT NULL,
+name CHAR(20) NOT NULL,
+inschool TINYINT(1) NOT NULL,
+gender TINYINT(1) NOT NULL,
+major CHAR(20) NOT NULL,
+department CHAR(20) NOT NULL,
+grade TINYINT(1) NOT NULL,
+PRIMARY KEY (id));
+#+END_SRC
+** instructor
+#+BEGIN_SRC sql
+CREATE TABLE instructor(
+id CHAR(11) NOT NULL,
+name CHAR(20) NOT NULL,
+gender TINYINT(1) NOT NULL,
+PRIMARY KEY (id));
+#+END_SRC
+** course
+#+BEGIN_SRC sql
+CREATE TABLE course(
+id CHAR(13) NOT NULL,
+name CHAR(20) NOT NULL,
+credits float NOT NULL,
+instructor_name CHAR(20) NOT NULL,
+instructor_id CHAR(11) NOT NULL,
+department_name CHAR(20) NOT NULL,
+campus CHAR(20) DEFAULT 'hd',
+classroom CHAR(10),
+start_week TINYINT(2) NOT NULL,
+end_week TINYINT(2) NOT NULL,
+weekday CHAR(3) NOT NULL,
+start_time TINYINT(1) NOT NULL,
+end_time TINYINT(1) NOT NULL,
+notes TEXT,
+PRIMARY KEY (id));
+#+END_SRC
+*** INDEX
+**** course inquiry
+#+BEGIN_SRC sql
+CREATE index course_inquiry ON course(id,name,instructor_name,
+department_name,campus,weekday);
+#+END_SRC
+** number
+#+BEGIN_SRC sql
+CREATE table number(
+id CHAR(13) NOT NULL,
+maximum INT NOT NULL,
+allowance INT NOT NULL,
+PRIMARY KEY (id));
+#+END_SRC
+** register
+#+BEGIN_SRC sql
+CREATE TABLE register(
+id BIGINT NOT NULL AUTO_INCREMENT,
+course_id CHAR(13) NOT NULL,
+course_name CHAR(20) NOT NULL,
+student_id CHAR(11) NOT NULL,
+student_name CHAR(20) NOT NULL,
+instructor_name CHAR(20) NOT NULL,
+instructor_id CHAR(11) NOT NULL,
+score INT(3) UNSIGNED default NULL,
+PRIMARY KEY (id));
+#+END_SRC
+*** INDEX
+**** csid //防止重复选课
+#+BEGIN_SRC sql
+create unique index on register(course_id,student_id); 
+#+END_SRC
+**** instructor
+#+BEGIN_SRC sql
+CREATE INDEX instructor ON register(instructor_id);
+#+END_SRC
+**** student
+#+BEGIN_SRC sql
+CREATE INDEX student ON register(student_id);
+#+END_SRC
+**** course
+#+BEGIN_SRC sql
+CREATE INDEX course ON register(course_id);
+#+END_SRC
+** major
+#+BEGIN_SRC sql
+CREATE TABLE major(
+name CHAR(20) NOT NULL,
+department CHAR(20) NOT NULL,
+counselor CHAR(20) NOT NULL,
+PRIMARY KEY (name));
+#+END_SRC
+** department
+#+BEGIN_SRC sql
+CREATE TABLE department(
+name CHAR(20) NOT NULL,
+PRIMARY KEY (name));
+#+END_SRC
+* relations
+- student-major n-1
+- student-register 1-n
+- student-course m-n
+- course-register 1-n
+- instructor-course 1-n
+- instructor-register 1-n
+- major-department n-1
+- instructor-department n-1
+* services
+** 视图
+*** TODO instructor
+**** TODO 得到教师的时间表，行标题为开始上课时间，列标题为星期几
+#+BEGIN_SRC sql
+CREATE VIEW instructor_timetable AS 
+SELECT start_time AS time,
+CONCAT(IF(weekday='Mon',name,NULL)) AS Mon,
+CONCAT(IF(weekday='Tue',name,NULL)) AS Tue,
+CONCAT(IF(weekday='Wed',name,NULL)) AS Wed,
+CONCAT(IF(weekday='Thu',name,NULL)) AS Thu,
+CONCAT(IF(weekday='Fri',name,NULL)) AS Fri,
+CONCAT(IF(weekday='Sat',name,NULL)) AS Sat,
+CONCAT(IF(weekday='Sun',name,NULL)) AS Sun
+FROM (
+SELECT
+name,weekday,start_time
+FROM course
+WHERE id IN 
+(SELECT course_id
+FROM register
+WHERE instructor_id=<instructor_id>) ) AS a
+GROUP BY time
+ORDER BY time asc;
+#+END_SRC
+*** TODO student
+**** TODO 得到学生的时间表，行标题为开始上课时间，列标题为星期几
+#+BEGIN_SRC sql
+CREATE VIEW student_timetable AS 
+SELECT start_time AS time,
+CONCAT(IF(weekday='Mon',name,NULL)) AS Mon,
+CONCAT(IF(weekday='Tue',name,NULL)) AS Tue,
+CONCAT(IF(weekday='Wed',name,NULL)) AS Wed,
+CONCAT(IF(weekday='Thu',name,NULL)) AS Thu,
+CONCAT(IF(weekday='Fri',name,NULL)) AS Fri,
+CONCAT(IF(weekday='Sat',name,NULL)) AS Sat,
+CONCAT(IF(weekday='Sun',name,NULL)) AS Sun
+FROM (
+SELECT
+name,weekday,start_time
+FROM course
+WHERE id IN 
+(SELECT course_id
+FROM register
+WHERE student_id=<student_id>) ) as a
+GROUP BY time
+ORDER BY time asc;
+#+END_SRC
+** 触发器 / 事务
+*** student
+**** DONE 添加课程之后增加余量
+CLOSED: [2016-09-09 五 13:59]
+#+BEGIN_SRC sql
+CREATE TRIGGER tri_after_add AFTER INSERT ON register FOR EACH ROW
+        UPDATE number SET allowance=allowance-1 WHERE id=NEW.course_id;
+#+END_SRC
+**** DONE 退课后更改余量
+CLOSED: [2016-09-09 五 14:04]
+#+BEGIN_SRC sql
+CREATE TRIGGER tri_after_drop AFTER DELETE ON register FOR EACH ROW
+        UPDATE number SET allowance=allowance+1 WHERE id=OLD.course_id;
+DELIMITER;
+#+END_SRC
+** 存储过程/函数
+*** 辅助
+**** 检查身份
+#+BEGIN_SRC sql
+create procedure get_role(
+id  char(11),
+pass char(30))
+select 
+role
+from userRole as u
+where u.id=id and u.pass=pass;
+#+END_SRC
+**** DONE 获得余量
+CLOSED: [2016-09-09 五 11:08]
+#+BEGIN_SRC sql
+DELIMITER //
+CREATE function fun_get_allowance(
+id CHAR(13))
+RETURNS INT
+BEGIN
+    DECLARE allowance INT;
+    SELECT allowance INTO @allowance
+    FROM number
+    WHERE id=id;
+    RETURN(@allowance);
+END //
+DELIMITER;
+#+END_SRC
+**** DONE 获得总额
+CLOSED: [2016-09-09 五 11:08]
+#+BEGIN_SRC sql
+DELIMITER //
+CREATE function fun_get_maximum(
+id CHAR(13))
+RETURNS INT
+BEGIN
+    DECLARE maximum INT;
+    SELECT maximum INTO @maximum
+    FROM number
+    WHERE id=id;
+    RETURN(@maximum);
+END //
+DELIMITER;
+#+END_SRC
+*** student
+**** DONE 退课
+CLOSED: [2016-09-11 日 13:24]
+#+BEGIN_SRC  sql
+create procedure pro_stu_drop_course(
+in c_id char(13),
+in s_id char(11))
+delete from register
+where 
+  course_id=c_id and student_id=s_id;
+#+END_SRC
+**** DONE 添加课程
+CLOSED: [2016-09-13 二 13:07]
+#+BEGIN_SRC sql
+delimeter //
+create procedure pro_stu_add_course(
+in course_id char(13),
+in student_id char(11))
+begin
+  declare allowance int;
+  declare maximum int;
+
+  start transaction;
+  insert into register(course_id,course_name,student_id,student_name,
+    instructor_id,instructor_name)
+  select c.id, c.name, s.id,s.name,c.instructor_id, c.instructor_name
+  from course as c, student as s
+  where c.id=course_id and s.id=student_id;
+  
+  select fun_get_maximum(course_id) into @maximum;
+  select fun_get_allowance(course_id) into @allowance;
+
+  if @maximum<0 then
+  rollback;
+  else
+  commit;
+  end if;
+
+end //
+delimiter;
+#+END_SRC
+**** DONE 获得已添加课程的清单
+CLOSED: [2016-09-09 五 11:09]
+#+BEGIN_SRC sql
+CREATE PROCEDURE pro_stu_added(
+IN id CHAR(11))
+  SELECT 
+  c.id, c.name, c.instructor_name,c.credits,
+  c.department_name,c.campus,c.classrom,c.start_week,c.end_week,
+  c.weekday,c.start_time,c.end_time,c.notes,
+  n.allowance,n.maximum 
+  FROM course AS c, number as n
+  WHERE c.id=n.id and c.id IN (SELECT course_id FROM register
+      WHERE student_id=id);
+#+END_SRC
+**** DONE 查询课程
+CLOSED: [2016-09-09 五 12:53]
+#+BEGIN_SRC sql
+CREATE PROCEDURE pro_stu_courses(
+IN id CHAR(14),
+IN name CHAR(21),
+IN instructor_name CHAR(11),
+IN department_name CHAR(11),
+IN campus CHAR(21),
+IN weekday CHAR(4))
+  SELECT 
+  c.id,  c.name, c.instructor_name,c.credits,
+  c.department_name,c.campus,c.classroom,c.start_week,c.end_week,
+  c.weekday,c.start_time,c.end_time,c.notes,
+  n.allowance,n.maximum
+  FROM course AS c join number as n on c.id=n.id
+  where c.id LIKE IF(c.id="null",c.id,id) 
+    AND c.name LIKE IF(c.name="null",c.name,name)
+    AND c.instructor_name LIKE IF(c.instructor_name="null",c.instructor_name,instructor_name)
+    AND c.department_name LIKE IF(c.department_name="null",c.department_name,department_name) 
+    AND c.campus LIKE IF(c.campus="null",c.campus,campus) 
+    AND c.weekday LIKE IF(c.weekday="null",c.weekday,weekday)
+  ORDER BY c.id asc;
+#+END_SRC
+**** DONE 查询成绩
+CLOSED: [2016-09-09 五 11:09]
+#+BEGIN_SRC sql
+CREATE PROCEDURE pro_stu_scores(
+IN s_id CHAR(11))
+
+  SELECT
+  course_id, course_name,instructor_name,score
+  FROM register 
+  WHERE student_id=s_id AND score is not NULL; 
+
+#+END_SRC
+*** instructor
+**** DONE 录入成绩
+CLOSED: [2016-09-12 一 12:24]
+#+BEGIN_SRC sql
+create procedure pro_ins_input_scores(
+in course_id char(13),
+in student_id char(11),
+in score int(3))
+update register as r set r.score=score 
+    where r.course_id=course_id and r.student_id=student_id;
+#+END_SRC
+**** DONE 得到某个老师所教授课程清单
+CLOSED: [2016-09-09 五 11:09]
+#+BEGIN_SRC sql
+CREATE PROCEDURE pro_ins_courses(
+IN i_id CHAR(11))
+
+  SELECT 
+  id, name, instructor_name,credits,
+  department_name,campus,classroom,start_week,end_week,
+  weekday,start_time,end_time, notes
+  FROM course 
+  WHERE instructor_id=i_id;
+#+END_SRC
+**** DONE 得到单个课程的花名册
+CLOSED: [2016-09-09 五 11:09]
+#+BEGIN_SRC sql
+CREATE PROCEDURE pro_ins_register(
+IN course_id CHAR(13))
+  SELECT 
+  s.id,s.name,s.major,s.grade,s.gender
+  FROM student AS s, register as r
+  where r.student_id=s.id and
+       r.course_id=course_id
+  ORDER BY s.id asc;
+#+END_SRC
